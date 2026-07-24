@@ -25,15 +25,17 @@ app.get('*', (req, res) => {
 });
 
 mongoose
-  .connect(MONGODB_URI)
+  .connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000
+  })
   .then(() => {
-    console.log('Connected to MongoDB:', MONGODB_URI);
-    app.listen(PORT, () => {
-      console.log(`PeriphTrack server running at http://localhost:${PORT}`);
-    });
+    console.log("✅ Connected to MongoDB");
   })
   .catch((err) => {
-    console.error('MongoDB connection error:', err.message);
-    console.error('Is MongoDB running, and is MONGODB_URI correct in your .env file?');
-    process.exit(1);
+    console.log("⚠ MongoDB not available.");
+    console.log(err.message);
   });
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at http://localhost:${PORT}`);
+});
