@@ -177,7 +177,13 @@
   .log-item::before{content:""; position:absolute; left:-5px; top:.35rem; width:8px; height:8px; border-radius:50%; background:var(--accent);}
   .log-item.action-removed::before{background:var(--red);}
   .log-date{font-size:.7rem; color:var(--text-muted); font-family:var(--font-mono);}
-
+  .log-note{
+    display:inline-flex; align-items:center; gap:.4rem;
+    margin-top:.35rem; padding:.15rem .55rem;
+    background:var(--accent-soft); color:var(--accent);
+    border:1px solid rgba(63,184,175,.3); border-radius:6px;
+    font-family:var(--font-mono); font-size:.72rem; font-weight:500;
+  }
   footer{color:var(--text-muted); font-size:.78rem;}
 
   @media (max-width:767px){

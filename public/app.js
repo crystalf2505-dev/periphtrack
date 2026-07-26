@@ -89,15 +89,7 @@ function statusBadgeClass(status) {
   if (status === 'Low Stock') return 'badge-low';
   return 'badge-instock';
 }
-function barcodeHTML(id) {
-  const bars = Array.from({ length: 14 })
-    .map(() => `<span style="height:${8 + Math.random() * 10}px;"></span>`)
-    .join('');
-  return `<div class="barcode-id">
-      <div class="barcode-bars">${bars}</div>
-      <span class="id-text">${id}</span>
-    </div>`;
-}
+
 function showToast(msg) {
   document.getElementById('appToastBody').textContent = msg;
   new bootstrap.Toast(document.getElementById('appToast'), { delay: 2600 }).show();
@@ -259,7 +251,7 @@ function renderTable() {
     const status = statusOf(item);
     return `
       <tr>
-        <td>${barcodeHTML(item.id)}</td>
+        <td>${item.id}</td>
         <td>
           <div class="item-name">${item.name}</div>
           <div class="item-cat">${item.category}</div>
@@ -296,9 +288,9 @@ function renderLog() {
     <div class="log-item ${tx.action === 'Removed' ? 'action-removed' : ''}">
       <div class="log-date">${formatDate(tx.date)}</div>
       <div><strong>${tx.action === 'Removed' ? '−' : '+'}${tx.qty}</strong> · ${tx.itemName}
-        <span class="text-muted">(${tx.itemId})</span> at ${tx.location || '—'}
+        <span >(${tx.itemId})</span> at ${tx.location || '—'}
       </div>
-      ${tx.note ? `<div class="text-muted small">${tx.note}</div>` : ''}
+      ${tx.note ? `<div class="log-note"><i class="bi bi-sticky"></i>${tx.note}</div>` : ''}
     </div>
   `).join('');
 }
