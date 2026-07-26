@@ -131,6 +131,10 @@ function renderStats() {
    --------------------------------------------------------------------- */
 let categoryChart, statusChart;
 function renderCharts() {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js did not load (likely blocked by the network/CDN) — skipping charts.');
+    return;
+  }
   const catTotals = {};
   inventory.forEach(i => { catTotals[i.category] = (catTotals[i.category] || 0) + i.qty; });
   const catLabels = Object.keys(catTotals);
@@ -303,11 +307,11 @@ function renderLog() {
    9. MASTER RENDER
    --------------------------------------------------------------------- */
 function renderAll() {
-  renderStats();
-  renderCharts();
-  renderFilterOptions();
-  renderTable();
-  renderLog();
+  try { renderStats(); } catch (e) { console.error('renderStats failed:', e); }
+  try { renderCharts(); } catch (e) { console.error('renderCharts failed:', e); }
+  try { renderFilterOptions(); } catch (e) { console.error('renderFilterOptions failed:', e); }
+  try { renderTable(); } catch (e) { console.error('renderTable failed:', e); }
+  try { renderLog(); } catch (e) { console.error('renderLog failed:', e); }
 }
 
 /* ---------------------------------------------------------------------

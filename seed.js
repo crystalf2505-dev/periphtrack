@@ -30,7 +30,6 @@ const transactions = [
   { date: '2026-07-09', itemId: 'PERIPH-0002', itemName: 'Lenovo USB-C Dock', action: 'Added',   qty: 10,  location: 'Computer Room' },
   { date: '2026-07-09', itemId: 'PERIPH-0003', itemName: 'Mouse',             action: 'Added',   qty: 200, location: 'IT Closet' },
   { date: '2026-07-09', itemId: 'PERIPH-0007', itemName: 'Keyboard',          action: 'Added',   qty: 238, location: 'Computer Room' },
-  { date: '2026-07-09', itemId: 'PERIPH-0008', itemName: 'Headset',           action: 'Added',   qty: 0,   location: 'IT Closet' },
   { date: '2026-07-09', itemId: 'PERIPH-0007', itemName: 'Keyboard',          action: 'Removed', qty: 1,   location: 'Computer Room' },
   { date: '2026-07-09', itemId: 'PERIPH-0003', itemName: 'Mouse',             action: 'Removed', qty: 10,  location: 'IT Cage' },
 ];
