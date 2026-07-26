@@ -18,6 +18,9 @@ app.use(express.json());
 app.use('/api/items', itemsRouter);
 app.use('/api/transactions', transactionsRouter);
 
+// Serve Chart.js from node_modules instead of a CDN (some networks block it there)
+app.use('/vendor/chart.js', express.static(path.join(__dirname, 'node_modules/chart.js/dist')));
+
 // Serve the front-end
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {
@@ -25,17 +28,15 @@ app.get('*', (req, res) => {
 });
 
 mongoose
-  .connect(MONGODB_URI, {
-    serverSelectionTimeoutMS: 5000
-  })
+  .connect(MONGODB_URI)
   .then(() => {
-    console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB:', MONGODB_URI);
+    app.listen(PORT, () => {
+      console.log(`PeriphTrack server running at http://localhost:${PORT}`);
+    });
   })
   .catch((err) => {
-    console.log("MongoDB not available.");
-    console.log(err.message);
+    console.error('MongoDB connection error:', err.message);
+    console.error('Is MongoDB running, and is MONGODB_URI correct in your .env file?');
+    process.exit(1);
   });
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
