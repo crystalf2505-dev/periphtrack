@@ -9,7 +9,7 @@ const transactionsRouter = require('./routes/transactions');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/periphtrack';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 app.use(cors());
 app.use(express.json());
@@ -30,13 +30,12 @@ app.get('*', (req, res) => {
 mongoose
   .connect(MONGODB_URI)
   .then(() => {
-    console.log('Connected to MongoDB:', MONGODB_URI);
+    console.log('Connected to MongoDB');
     app.listen(PORT, () => {
-      console.log(`PeriphTrack server running at http://localhost:${PORT}`);
+      console.log(`PeriphTrack server running on port ${PORT}`);
     });
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err.message);
-    console.error('Is MongoDB running, and is MONGODB_URI correct in your .env file?');
     process.exit(1);
   });
