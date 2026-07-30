@@ -180,7 +180,7 @@ function renderCharts() { //creates and updates dashboard charts
     },
     options: {
       responsive: true, //automatically adjusts chart size
-      plugins: { legend: { display: true } },
+      plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { color: textColor, font: { family: 'Inter' } }, grid: { display: false } }, // displays category 
         y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true } // displays quantity 
