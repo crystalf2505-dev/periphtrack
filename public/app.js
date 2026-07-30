@@ -1,67 +1,77 @@
-/* =========================================================================
-   PeriphTrack — Peripheral Inventory Tracker (front-end)
-   Talks to the Express + MongoDB API running on this same server
-   (see server.js / routes/items.js / routes/transactions.js).
-   ========================================================================= */
 
-const API_BASE = '/api';
+const API_BASE = '/api'; // base path for the API endpoints (matches the Express routes in server.js)
 
 /* ---------------------------------------------------------------------
    1. API LAYER — real fetch() calls to the Express backend
    --------------------------------------------------------------------- */
+   //checks if server response is ok, 
+   // if not throws an error with the status code and any error message from the server, otherwise returns the parsed JSON response
 async function handleResponse(res) {
   if (!res.ok) {
     let msg = `Request failed (${res.status})`;
-    try { const body = await res.json(); if (body.error) msg = body.error; } catch (_) {}
+    try { 
+      const body = await res.json(); 
+      if (body.error) msg = body.error; 
+    } catch (_) {}
     throw new Error(msg);
   }
   return res.json();
 }
 
-const api = {
-  async listItems() {
+const api = { //api object containing methods for interacting with the backend API endpoints for items and transactions
+
+  async listItems() { //retrieves all inventory items from database
     return handleResponse(await fetch(`${API_BASE}/items`));
   },
-  async listTransactions() {
+
+  async listTransactions() { //retrieves all transaction records from database
     return handleResponse(await fetch(`${API_BASE}/transactions`));
   },
-  async createItem(item) {
+
+  async createItem(item) { //creates a new inventory item in the database, expects an object with item details (name, category, location, qty, minStock)
     return handleResponse(await fetch(`${API_BASE}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
+      body: JSON.stringify(item), //converts the item object to a JSON string for the request body
     }));
   },
-  async updateItem(id, patch) {
+
+  async updateItem(id, patch) { //updates an existing inventory item in the database, expects the item's unique id and an object with the fields to update (patch)
     return handleResponse(await fetch(`${API_BASE}/items/${encodeURIComponent(id)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     }));
   },
-  async deleteItem(id) {
+
+  async deleteItem(id) { //deletes an existing inventory item from the database, expects the item's unique id
     return handleResponse(await fetch(`${API_BASE}/items/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     }));
   },
-  async stockMove(id, { action, qty, note }) {
+
+  async stockMove(id, { action, qty, note }) { //records a stock movement (addition or removal) for an inventory item, expects the item's unique id and an object with the action ('in' or 'out'), quantity, and optional note
     return handleResponse(await fetch(`${API_BASE}/items/${encodeURIComponent(id)}/stock`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, qty, note }),
     }));
   },
+
 };
 
 /* ---------------------------------------------------------------------
    2. STATE
    --------------------------------------------------------------------- */
-let inventory = [];
-let transactions = [];
-let sortKey = 'id';
-let sortDir = 1;
-let currentView = 'inventory';
 
+//
+let inventory = []; // array to hold the current inventory items fetched from the server
+let transactions = []; // array to hold the current transaction records fetched from the server
+let sortKey = 'id'; // default sort key for the inventory table (can be changed by clicking on table headers)
+let sortDir = 1; // default sort direction for the inventory table (1 for ascending, -1 for descending)
+let currentView = 'inventory'; // current view of the app, either 'inventory' or 'log', controlled by the tab buttons
+
+// loads the latest inventory and transaction data from the server, updates the local state, and re-renders the UI. If silent is true, it suppresses error messages to the user.
 async function refreshData({ silent = false } = {}) {
   try {
     const [items, txs] = await Promise.all([api.listItems(), api.listTransactions()]);
@@ -71,79 +81,97 @@ async function refreshData({ silent = false } = {}) {
   } catch (err) {
     console.error(err);
     if (!silent) {
-      showToast('Could not reach the server. Is `npm start` running and is MongoDB up?');
+      showToast('Could not reach the server.');
     }
   }
 }
 
 /* ---------------------------------------------------------------------
-   3. HELPERS
+   3. HELPER FUNCTIONS
    --------------------------------------------------------------------- */
+// determines inventory status based on quantity levels
 function statusOf(item) {
-  if (item.qty <= 0) return 'Out of Stock';
-  if (item.qty <= item.minStock) return 'Low Stock';
+  if (item.qty <= 0) 
+    return 'Out of Stock';
+  if (item.qty <= item.minStock) 
+    return 'Low Stock';
   return 'In Stock';
 }
+// returns the appropriate CSS class for a status badge based on its value
 function statusBadgeClass(status) {
-  if (status === 'Out of Stock') return 'badge-out';
-  if (status === 'Low Stock') return 'badge-low';
+  if (status === 'Out of Stock') 
+    return 'badge-out';
+  if (status === 'Low Stock') 
+    return 'badge-low';
   return 'badge-instock';
 }
-
+// displays bootstrap notifcation message
 function showToast(msg) {
   document.getElementById('appToastBody').textContent = msg;
   new bootstrap.Toast(document.getElementById('appToast'), { delay: 2600 }).show();
 }
+// formats a date string into a more readable format Ex.) "Jan 1, 2024"
 function formatDate(d) {
   if (!d) return '—';
   const dt = new Date(d);
   return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
+// removes duplicates from an array and sorts the values alphabetically
 function uniqueSorted(values) {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b));
 }
 
 /* ---------------------------------------------------------------------
-   4. RENDER: STAT CARDS
+   4. Dashboard Stats — total items, total units, low stock, out of stock
    --------------------------------------------------------------------- */
 function renderStats() {
-  const totalItems = inventory.length;
-  const totalUnits = inventory.reduce((s, i) => s + i.qty, 0);
-  const low = inventory.filter(i => statusOf(i) === 'Low Stock').length;
-  const out = inventory.filter(i => statusOf(i) === 'Out of Stock').length;
-
-  document.getElementById('statTotalItems').textContent = totalItems;
-  document.getElementById('statTotalUnits').textContent = totalUnits.toLocaleString();
-  document.getElementById('statLow').textContent = low;
-  document.getElementById('statOut').textContent = out;
+  const totalItems = inventory.length; //total # of unique items in inventory
+  const totalUnits = inventory.reduce( //total # of units across all items in inventory
+    (s, i) => s + i.qty, 0);
+  const low = inventory.filter(i => statusOf(i) === 'Low Stock').length; //total # of items that are low in stock
+  const out = inventory.filter(i => statusOf(i) === 'Out of Stock').length; //total # of items that are out of stock
+//update dashboard stats
+  document.getElementById('statTotalItems').textContent = totalItems; //update total items stat
+  document.getElementById('statTotalUnits').textContent = totalUnits.toLocaleString(); //update total units stat with comma separators for thousands
+  document.getElementById('statLow').textContent = low; //update low stock stat
+  document.getElementById('statOut').textContent = out; //update out of stock stat
 }
 
 /* ---------------------------------------------------------------------
-   5. RENDER: CHARTS
+   5. CHARTS — category distribution, stock status distribution
    --------------------------------------------------------------------- */
-let categoryChart, statusChart;
-function renderCharts() {
-  if (typeof Chart === 'undefined') {
+let categoryChart, statusChart; // references to the Chart.js chart instances for category distribution and stock status distribution
+
+function renderCharts() { //creates and updates dashboard charts
+  if (typeof Chart === 'undefined') { //checks if Chart.js is loaded, if not logs a warning and skips chart rendering
     console.warn('Chart.js did not load (likely blocked by the network/CDN) — skipping charts.');
     return;
   }
-  const catTotals = {};
-  inventory.forEach(i => { catTotals[i.category] = (catTotals[i.category] || 0) + i.qty; });
-  const catLabels = Object.keys(catTotals);
-  const catValues = Object.values(catTotals);
 
+  const catTotals = {}; //object to hold the total quantity of items per category
+// iterate through the inventory and accumulate the total quantity for each category
+  inventory.forEach(i => { 
+    catTotals[i.category] = 
+    (catTotals[i.category] || 0) + i.qty; 
+  });
+// convert category totals object into arrays of labels and values for Chart.js
+  const catLabels = Object.keys(catTotals); //
+  const catValues = Object.values(catTotals);
+// calculate the counts of items in each stock status category (In Stock, Low Stock, Out of Stock)
   const statusCounts = { 'In Stock': 0, 'Low Stock': 0, 'Out of Stock': 0 };
+  // iterate through the inventory and increment the count for each item's stock status
   inventory.forEach(i => statusCounts[statusOf(i)]++);
 
   const gridColor = 'rgba(255,255,255,.06)';
   const textColor = '#8B96A5';
 
-  if (categoryChart) categoryChart.destroy();
+  if (categoryChart) categoryChart.destroy(); //remove old chart before creating a new one preventing duplicates
+// create a new bar chart for category distribution using Chart.js
   categoryChart = new Chart(document.getElementById('categoryChart'), {
     type: 'bar',
-    data: {
+    data: { 
       labels: catLabels,
-      datasets: [{
+      datasets: [{ 
         data: catValues,
         backgroundColor: '#3FB8AF',
         borderRadius: 6,
@@ -151,16 +179,17 @@ function renderCharts() {
       }]
     },
     options: {
-      responsive: true,
-      plugins: { legend: { display: false } },
+      responsive: true, //automatically adjusts chart size
+      plugins: { legend: { display: true } },
       scales: {
-        x: { ticks: { color: textColor, font: { family: 'Inter' } }, grid: { display: false } },
-        y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true }
+        x: { ticks: { color: textColor, font: { family: 'Inter' } }, grid: { display: false } }, // displays category 
+        y: { ticks: { color: textColor }, grid: { color: gridColor }, beginAtZero: true } // displays quantity 
       }
     }
   });
 
-  if (statusChart) statusChart.destroy();
+  if (statusChart) statusChart.destroy(); // remove old chart before creating a new one preventing duplicates
+
   statusChart = new Chart(document.getElementById('statusChart'), {
     type: 'doughnut',
     data: {
@@ -183,45 +212,54 @@ function renderCharts() {
 }
 
 /* ---------------------------------------------------------------------
-   6. RENDER: FILTER DROPDOWNS
+   6. FILTER OPTIONS — category, location, status
    --------------------------------------------------------------------- */
+//creates and updates the filter dropdowns for category, location, and status based on the current inventory data
 function renderFilterOptions() {
+  //dropdown elements for category and location filters, and datalist elements for autocomplete suggestions
   const catSel = document.getElementById('filterCategory');
   const locSel = document.getElementById('filterLocation');
   const catList = document.getElementById('categoryList');
   const locList = document.getElementById('locationList');
-
+ // get unique categories and locations from the inventory data, sorted alphabetically
   const cats = uniqueSorted(inventory.map(i => i.category));
   const locs = uniqueSorted(inventory.map(i => i.location));
 
   const prevCat = catSel.value, prevLoc = locSel.value;
+  //build category and location filter dropdowns with an "All" option and the unique values from the inventory
   catSel.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
   locSel.innerHTML = '<option value="">All Locations</option>' + locs.map(l => `<option value="${l}">${l}</option>`).join('');
+//
   catSel.value = cats.includes(prevCat) ? prevCat : '';
   locSel.value = locs.includes(prevLoc) ? prevLoc : '';
-
+ //
   catList.innerHTML = cats.map(c => `<option value="${c}">`).join('');
   locList.innerHTML = locs.map(l => `<option value="${l}">`).join('');
 }
 
 /* ---------------------------------------------------------------------
-   7. RENDER: TABLE
+   7. Inventory Table — filtering, sorting, rendering
    --------------------------------------------------------------------- */
+//applies search,filters, and sorting to the inventory data and returns the resulting array of items to be displayed in the table
 function getFilteredSorted() {
+  // search query and filter values from the input fields
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  // filter values for category, location, and status from the dropdowns
   const fCat = document.getElementById('filterCategory').value;
   const fLoc = document.getElementById('filterLocation').value;
   const fStatus = document.getElementById('filterStatus').value;
-
-  let rows = inventory.filter(i => {
+//filter the inventory based on the search query and selected filters
+  let rows = inventory.filter(i => { 
+    //search by item name or ID, and filter by category, location, and status if specified
     const matchesQ = !q || i.name.toLowerCase().includes(q) || i.id.toLowerCase().includes(q);
     const matchesCat = !fCat || i.category === fCat;
     const matchesLoc = !fLoc || i.location === fLoc;
     const matchesStatus = !fStatus || statusOf(i) === fStatus;
     return matchesQ && matchesCat && matchesLoc && matchesStatus;
   });
-
+  //sort the filtered rows based on the selected sort key and direction
   rows.sort((a, b) => {
+    //if 
     let av = sortKey === 'status' ? statusOf(a) : a[sortKey];
     let bv = sortKey === 'status' ? statusOf(b) : b[sortKey];
     if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
