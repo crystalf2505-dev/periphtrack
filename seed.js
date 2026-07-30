@@ -1,7 +1,4 @@
 /*
-  Run this once to populate your MongoDB database with the starting
-  inventory (from Peripheral_Inventory_Tracker_Copy.xlsx) so the app
-  isn't empty the first time you open it.
 
   Usage:  npm run seed
 */
@@ -10,7 +7,7 @@ const mongoose = require('mongoose');
 const Item = require('./models/Item');
 const Transaction = require('./models/Transaction');
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/periphtrack';
+const MONGODB_URI = process.env.MONGODB_URI;
 
 const items = [
   { id: 'PERIPH-0001', name: 'Lenovo TB4 Dock',   category: 'Dock',     location: 'IT Closet',     qty: 24,  minStock: 10 },

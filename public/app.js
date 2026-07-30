@@ -361,7 +361,7 @@ document.querySelectorAll('th[data-sort]').forEach(th => {
 });
 
 /* ---------------------------------------------------------------------
-   11. EVENTS — tabs
+   11. event listener for switching between the inventory and log views when the user clicks on the corresponding tab buttons
    --------------------------------------------------------------------- */
 document.getElementById('viewTabs').addEventListener('click', e => {
   const btn = e.target.closest('.nav-link');
@@ -374,7 +374,7 @@ document.getElementById('viewTabs').addEventListener('click', e => {
 });
 
 /* ---------------------------------------------------------------------
-   12. ADD / EDIT ITEM MODAL
+   12. add / edit item modal
    --------------------------------------------------------------------- */
 const itemModalEl = document.getElementById('itemModal');
 const itemModal = new bootstrap.Modal(itemModalEl);
@@ -417,7 +417,7 @@ document.getElementById('itemForm').addEventListener('submit', async e => {
 });
 
 /* ---------------------------------------------------------------------
-   13. STOCK IN / OUT MODAL
+   13. stock in / stock out modal
    --------------------------------------------------------------------- */
 const stockModalEl = document.getElementById('stockModal');
 const stockModal = new bootstrap.Modal(stockModalEl);
@@ -460,7 +460,7 @@ document.getElementById('stockForm').addEventListener('submit', async e => {
 });
 
 /* ---------------------------------------------------------------------
-   14. DELETE MODAL
+   14. delete item and confirm modal
    --------------------------------------------------------------------- */
 const deleteModalEl = document.getElementById('deleteModal');
 const deleteModal = new bootstrap.Modal(deleteModalEl);
@@ -516,7 +516,7 @@ document.getElementById('inventoryBody').addEventListener('click', e => {
 });
 
 /* ---------------------------------------------------------------------
-   16. CSV EXPORT
+   16. EXPORT CSV
    --------------------------------------------------------------------- */
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   const header = ['Item_ID', 'Item_Name', 'Category', 'Location', 'Current_Qty', 'Minimum_Stock', 'Status'];
@@ -536,7 +536,4 @@ document.getElementById('exportCsvBtn').addEventListener('click', () => {
    --------------------------------------------------------------------- */
 setInterval(() => refreshData({ silent: true }), 15000);
 
-/* ---------------------------------------------------------------------
-   18. INIT
-   --------------------------------------------------------------------- */
 refreshData();

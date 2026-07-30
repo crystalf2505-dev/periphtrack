@@ -18,7 +18,6 @@ app.use(express.json());
 app.use('/api/items', itemsRouter);
 app.use('/api/transactions', transactionsRouter);
 
-// Serve Chart.js from node_modules instead of a CDN (some networks block it there)
 app.use('/vendor/chart.js', express.static(path.join(__dirname, 'node_modules/chart.js/dist')));
 
 // Serve the front-end
