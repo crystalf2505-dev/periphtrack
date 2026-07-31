@@ -41,3 +41,6 @@ As an example, here's what happens, file by file, when someone clicks “Stock I
 •	routes/items.js — receives that request, finds the right item, and updates its quantity
 •	models/Item.js and models/Transaction.js — define how that updated item and the new history entry get saved
 •	public/app.js — asks for the fresh data and updates the screen so the new quantity shows up right away
+
+MongoDB - where data is stored (in the cloud) 
+Render - deploys webpage live https://periphtrack.onrender.com

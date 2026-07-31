@@ -1,5 +1,4 @@
 /*
-
   Usage:  npm run seed
 */
 require('dotenv').config();
