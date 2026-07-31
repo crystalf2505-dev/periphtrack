@@ -61,7 +61,7 @@ const api = { //api object containing methods for interacting with the backend A
 };
 
 /* ---------------------------------------------------------------------
-   2. STATE
+   2. local vars — holds the current state of the app (inventory, transactions, sort/filter settings)
    --------------------------------------------------------------------- */
 
 //
@@ -311,7 +311,7 @@ function renderTable() {
 }
 
 /* ---------------------------------------------------------------------
-   8. RENDER: TRANSACTION LOG
+   8. render log — displays the most recent 100 transactions in the log view
    --------------------------------------------------------------------- */
 function renderLog() {
   const list = document.getElementById('logList');
@@ -334,7 +334,7 @@ function renderLog() {
 }
 
 /* ---------------------------------------------------------------------
-   9. MASTER RENDER
+   9. calls all the render functions to update the UI with the latest data and state
    --------------------------------------------------------------------- */
 function renderAll() {
   try { renderStats(); } catch (e) { console.error('renderStats failed:', e); }
@@ -345,7 +345,7 @@ function renderAll() {
 }
 
 /* ---------------------------------------------------------------------
-   10. EVENTS — filters / search / sort
+   10. filters / search / sort
    --------------------------------------------------------------------- */
 ['searchInput', 'filterCategory', 'filterLocation', 'filterStatus'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderTable);
@@ -490,7 +490,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
 });
 
 /* ---------------------------------------------------------------------
-   15. ROW ACTION CLICKS (edit / delete / stock in / stock out)
+   15. action clicks (edit / delete / stock in / stock out)
    --------------------------------------------------------------------- */
 document.getElementById('inventoryBody').addEventListener('click', e => {
   const btn = e.target.closest('button[data-action]');
@@ -516,7 +516,7 @@ document.getElementById('inventoryBody').addEventListener('click', e => {
 });
 
 /* ---------------------------------------------------------------------
-   16. EXPORT CSV
+   16. csv export — export the current inventory table to a CSV file for download
    --------------------------------------------------------------------- */
 document.getElementById('exportCsvBtn').addEventListener('click', () => {
   const header = ['Item_ID', 'Item_Name', 'Category', 'Location', 'Current_Qty', 'Minimum_Stock', 'Status'];
