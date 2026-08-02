@@ -313,25 +313,58 @@ function renderTable() {
 /* ---------------------------------------------------------------------
    8. render log — displays the most recent 100 transactions in the log view
    --------------------------------------------------------------------- */
+function renderLogFilterOptions() {
+  const locSel = document.getElementById('logFilterLocation');
+  const locs = uniqueSorted(transactions.map(t => t.location).filter(Boolean));
+  const prevLoc = locSel.value;
+  locSel.innerHTML = '<option value="">All Locations</option>' + locs.map(l => `<option value="${l}">${l}</option>`).join('');
+  locSel.value = locs.includes(prevLoc) ? prevLoc : '';
+}
+
+function getFilteredLog() {
+  const q = document.getElementById('logSearchInput').value.trim().toLowerCase();
+  const fAction = document.getElementById('logFilterAction').value;
+  const fLoc = document.getElementById('logFilterLocation').value;
+  const fRange = document.getElementById('logFilterRange').value;
+
+  const cutoff = fRange ? Date.now() - Number(fRange) * 24 * 60 * 60 * 1000 : null;
+
+  return transactions.filter(tx => {
+    const matchesQ = !q
+      || (tx.itemName || '').toLowerCase().includes(q)
+      || (tx.itemId || '').toLowerCase().includes(q)
+      || (tx.note || '').toLowerCase().includes(q);
+    const matchesAction = !fAction || tx.action === fAction;
+    const matchesLoc = !fLoc || tx.location === fLoc;
+    const matchesRange = !cutoff || new Date(tx.date).getTime() >= cutoff;
+    return matchesQ && matchesAction && matchesLoc && matchesRange;
+  });
+}
+
 function renderLog() {
   const list = document.getElementById('logList');
   const empty = document.getElementById('logEmpty');
-  if (!transactions.length) {
+  const rows = getFilteredLog();
+
+  document.getElementById('logResultCount').textContent = `${rows.length} entr${rows.length === 1 ? 'y' : 'ies'}`;
+
+  if (!rows.length) {
     list.innerHTML = '';
     empty.classList.remove('d-none');
     return;
   }
   empty.classList.add('d-none');
-  list.innerHTML = transactions.slice(0, 100).map(tx => `
+  list.innerHTML = rows.slice(0, 100).map(tx => `
     <div class="log-item ${tx.action === 'Removed' ? 'action-removed' : ''}">
       <div class="log-date">${formatDate(tx.date)}</div>
       <div><strong>${tx.action === 'Removed' ? '−' : '+'}${tx.qty}</strong> · ${tx.itemName}
-        <span >(${tx.itemId})</span> at ${tx.location || '—'}
+        <span>(${tx.itemId})</span> at ${tx.location || '—'}
       </div>
-      ${tx.note ? `<div class="log-note"><i class="bi bi-sticky"></i>${tx.note}</div>` : ''}
+      ${tx.note ? `<div class="log-note"><i class="bi bi-ticket-perforated"></i>${tx.note}</div>` : ''}
     </div>
   `).join('');
 }
+
 
 /* ---------------------------------------------------------------------
    9. calls all the render functions to update the UI with the latest data and state
@@ -341,6 +374,7 @@ function renderAll() {
   try { renderCharts(); } catch (e) { console.error('renderCharts failed:', e); }
   try { renderFilterOptions(); } catch (e) { console.error('renderFilterOptions failed:', e); }
   try { renderTable(); } catch (e) { console.error('renderTable failed:', e); }
+  try { renderLogFilterOptions(); } catch (e) { console.error('renderLogFilterOptions failed:', e); }
   try { renderLog(); } catch (e) { console.error('renderLog failed:', e); }
 }
 
@@ -350,6 +384,11 @@ function renderAll() {
 ['searchInput', 'filterCategory', 'filterLocation', 'filterStatus'].forEach(id => {
   document.getElementById(id).addEventListener('input', renderTable);
   document.getElementById(id).addEventListener('change', renderTable);
+});
+
+['logSearchInput', 'logFilterAction', 'logFilterLocation', 'logFilterRange'].forEach(id => {
+  document.getElementById(id).addEventListener('input', renderLog);
+  document.getElementById(id).addEventListener('change', renderLog);
 });
 
 document.querySelectorAll('th[data-sort]').forEach(th => {

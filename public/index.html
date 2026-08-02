@@ -161,17 +161,49 @@
 
   <!-- ================= LOG VIEW ================= -->
   <div id="view-log" class="d-none">
+    <div class="panel p-3 mb-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-12 col-md-4">
+          <div class="input-group">
+            <span class="input-group-text" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" id="logSearchInput" placeholder="Search item, ID, or note…">
+          </div>
+        </div>
+        <div class="col-6 col-md-2">
+          <select class="form-select" id="logFilterAction">
+            <option value="">All Actions</option>
+            <option value="Added">Added</option>
+            <option value="Removed">Removed</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2">
+          <select class="form-select" id="logFilterLocation"><option value="">All Locations</option></select>
+        </div>
+        <div class="col-6 col-md-2">
+          <select class="form-select" id="logFilterRange">
+            <option value="">All Time</option>
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+            <option value="90">Last 90 Days</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-2 text-md-end">
+          <span class="text-muted small" id="logResultCount">0 entries</span>
+        </div>
+      </div>
+    </div>
+
     <div class="panel p-3 p-md-4">
       <div class="eyebrow mb-1">History</div>
       <h2 class="section-title mb-3">Recent Transactions</h2>
       <div id="logList"></div>
       <div class="empty-state d-none" id="logEmpty">
         <i class="bi bi-clock-history"></i>
-        No transactions yet.
+        No transactions match your filters.
       </div>
     </div>
   </div>
-</div>
+
 
 <!-- ================= ADD / EDIT ITEM MODAL ================= -->
 <div class="modal fade" id="itemModal" tabindex="-1">
